@@ -100,7 +100,12 @@ func (s *StructToTS) addTypeFields(out *Struct, t reflect.Type) {
 
 			switch {
 			case isStruct(sft.Elem()):
-				tf.ValType = s.addType(sft.Elem(), "").Name
+				if sft.Elem().String() == "struct {}" {
+					// map without value (Go "Set" construct)
+					tf.ValType = "null"
+				} else {
+					tf.ValType = s.addType(sft.Elem(), "").Name
+				}
 			case sft.Elem().Kind() == reflect.Interface:
 				tf.ValType = "any"
 			}
@@ -110,7 +115,11 @@ func (s *StructToTS) addTypeFields(out *Struct, t reflect.Type) {
 				break
 			}
 			tf.CanBeNull = k == reflect.Slice
-			tf.TsType, tf.ValType = "array", stripType(sft.Elem())
+			if sft.Elem().Kind() == reflect.Slice || sft.Elem().Kind() == reflect.Array {
+				tf.TsType, tf.ValType = "arrayOfArray", stripType(sft.Elem().Elem())
+			} else {
+				tf.TsType, tf.ValType = "array", stripType(sft.Elem())
+			}
 
 			if isStruct(sft.Elem()) {
 				tf.ValType = s.addType(sft.Elem(), "").Name
@@ -121,7 +130,12 @@ func (s *StructToTS) addTypeFields(out *Struct, t reflect.Type) {
 				break
 			}
 			tf.TsType = "object"
-			tf.ValType = s.addType(sft, "").Name
+			typeName := ""
+			if strings.HasPrefix(sft.String(), "struct {") {
+				// Anonymous struct, use concatenated name of type and field
+				typeName = t.Name() + sf.Name
+			}
+			tf.ValType = s.addType(sft, typeName).Name
 
 		case k == reflect.Interface:
 			tf.TsType, tf.ValType = "object", ""

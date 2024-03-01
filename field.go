@@ -22,6 +22,8 @@ type Field struct {
 func (f *Field) Type(opts *Options, noSuffix bool) (out string) {
 	switch out = f.TsType; out {
 	case "string", "number", "boolean":
+	case "arrayOfArray":
+		out = f.ValType + "[][]"
 	case "array":
 		out = f.ValType + "[]"
 	case "map":

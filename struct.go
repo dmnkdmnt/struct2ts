@@ -24,7 +24,7 @@ type Struct struct {
 }
 
 func (s *Struct) RenderTo(opts *Options, w io.Writer) (err error) {
-	if _, err = fmt.Fprintf(w, "// struct2ts:%s.%s\n", s.t.PkgPath(), s.Name); err != nil {
+	if _, err = fmt.Fprintf(w, "// %s.%s\n", s.t.PkgPath(), s.Name); err != nil {
 		return
 	}
 
